@@ -33,7 +33,7 @@ var (
 	// MaxLedger Ledger to checkup to
 	MaxLedger = kingpin.
 			Flag("max-ledger", "Maximum ledger to finish on (is loaded from public Horizon by default)").
-			Default("25000000").
+			Default("5000").
 			OverrideDefaultFromEnvar("MAX_LEDGER").
 			Int()
 
@@ -52,6 +52,20 @@ var (
 			OverrideDefaultFromEnvar("CONCURRENCY").
 			Short('c').
 			Int()
+
+	// WorkDir Where to create temporary stellar files
+	WorkDir = kingpin.
+		Flag("work-dir", "Working directory").
+		Default("/tmp").
+		OverrideDefaultFromEnvar("WORK_DIR").
+		String()
+
+	// StellarConfigTemplate Path to stellar-core.cfg template file
+	StellarConfigTemplate = kingpin.
+				Flag("stellar-config-template", "stellar-core.cfg template file location").
+				Default("./templates/stellar-core.cfg").
+				OverrideDefaultFromEnvar("STELLAR_CORE_TEMPLATE").
+				String()
 )
 
 func init() {
