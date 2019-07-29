@@ -26,14 +26,14 @@ var (
 	// MinLedger Starting ledger to catch up from
 	MinLedger = kingpin.
 			Flag("min-ledger", "Minimal ledger to start from").
-			Default("1").
+			Default("250690000").
 			OverrideDefaultFromEnvar("MIN_LEDGER").
 			Int()
 
 	// MaxLedger Ledger to checkup to
 	MaxLedger = kingpin.
 			Flag("max-ledger", "Maximum ledger to finish on (is loaded from public Horizon by default)").
-			Default("5000").
+			Default("25069442").
 			OverrideDefaultFromEnvar("MAX_LEDGER").
 			Int()
 

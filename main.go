@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/astroband/stellar-parallel-catchup/backfill"
 	"github.com/astroband/stellar-parallel-catchup/config"
@@ -16,6 +18,12 @@ func main() {
 
 	gaps := db.GetGaps()
 
+	if len(gaps) == 0 {
+		log.Println("Nothing to catch up!")
+		os.Exit(0)
+	}
+	fmt.Println(gaps)
+	os.Exit(-1)
 	for _, gap := range gaps {
 		submitChunks(gap)
 		submitTail(gap)

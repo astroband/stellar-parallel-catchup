@@ -1,6 +1,7 @@
 package backfill
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -10,36 +11,50 @@ import (
 	"text/template"
 
 	"github.com/astroband/stellar-parallel-catchup/config"
+
+	_ "github.com/mattn/go-sqlite3" // sqlite3 driver
 )
+
+const (
+	dbName = "stellar.sqlite"
+)
+
+var tables = []string{"ledgerheaders", "txhistory", "txfeehistory", "upgradehistory", "scphistory"}
 
 // Backfill Represents Backfill instance
 type Backfill struct {
 	Start  int
 	Count  int
 	Ledger int
+	Dir    string
+	DbFile string
 }
 
 // New Backfill Constructor
 func New(start int, count int) *Backfill {
-	return &Backfill{start, count, start + count}
+	ledger := start + count
+	dir := path.Join(*config.WorkDir, fmt.Sprintf("%s-%s", strconv.Itoa(ledger), strconv.Itoa(count)))
+	dbFile := path.Join(dir, dbName)
+
+	return &Backfill{start, count, ledger, dir, dbFile}
 }
 
 // Do Backfill payload
 func (b *Backfill) Do() {
-	path := b.createConfig()
-	catchup := fmt.Sprintf("%s/%s", strconv.Itoa(b.Ledger), strconv.Itoa(b.Count))
+	log.Println("Catching up", b.catchupString())
 
-	log.Println("Catching up", catchup)
+	conf := b.prepare()
 
-	run("stellar-core", "--conf", path, "new-db")
-	run("stellar-core", "--conf", path, "catchup", catchup)
+	b.run("stellar-core", "--conf", conf, "new-db")
+	b.run("stellar-core", "--conf", conf, "catchup", b.catchupString())
+	b.truncDatabase()
+	b.infill()
+
+	b.cleanup()
 }
 
 func (b *Backfill) createConfig() string {
-	path := path.Join(
-		*config.WorkDir,
-		fmt.Sprintf("stellar-core-%s-%s.cfg", strconv.Itoa(b.Ledger), strconv.Itoa(b.Count)),
-	)
+	path := path.Join(b.Dir, "stellar-core.cfg")
 
 	t, err := template.ParseFiles(*config.StellarConfigTemplate)
 	if err != nil {
@@ -54,19 +69,95 @@ func (b *Backfill) createConfig() string {
 	err = t.Execute(f, struct {
 		Ledger int
 		Count  int
+		DB     string
 	}{
 		b.Ledger,
 		b.Count,
+		dbName,
 	})
 
 	return path
 }
 
-func run(name string, args ...string) {
-	cmd := exec.Command(name, args...)
-	out, err := cmd.CombinedOutput()
+func (b *Backfill) catchupString() string {
+	return fmt.Sprintf("%s/%s", strconv.Itoa(b.Ledger), strconv.Itoa(b.Count))
+}
+
+func (b *Backfill) prepare() string {
+	os.MkdirAll(b.Dir, os.ModePerm)
+	return b.createConfig()
+}
+
+func (b *Backfill) cleanup() {
+	os.RemoveAll(b.Dir)
+}
+
+func (b *Backfill) truncDatabase() {
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?cache=shared", b.DbFile))
 	if err != nil {
-		fmt.Println(string(out))
-		log.Fatalf("cmd.Run() failed with %s\n", err)
+		log.Fatal(err)
 	}
+
+	db.SetMaxOpenConns(1)
+
+	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq=1")
+	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq > ?", b.Ledger)
+	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq < ?", b.Ledger-b.Count+1)
+
+	// db.Exec("DROP TABLE IF EXISTS accountdata")
+	// db.Exec("DROP TABLE IF EXISTS accounts")
+	// db.Exec("DROP TABLE IF EXISTS ban")
+	// db.Exec("DROP TABLE IF EXISTS offers")
+	// db.Exec("DROP TABLE IF EXISTS peers")
+	// db.Exec("DROP TABLE IF EXISTS publishqueue")
+	// db.Exec("DROP TABLE IF EXISTS pubsub")
+	// db.Exec("DROP TABLE IF EXISTS quoruminfo")
+	// db.Exec("DROP TABLE IF EXISTS scpquorums")
+	// db.Exec("DROP TABLE IF EXISTS storestate")
+	// db.Exec("DROP TABLE IF EXISTS trustlines")
+}
+
+func (b *Backfill) infill() {
+	for _, table := range tables {
+		exportCmd := exec.Command("sqlite3", "-header", "-csv", b.DbFile, fmt.Sprintf("select * from %s", table))
+		importCmd := exec.Command("psql", "-c", fmt.Sprintf(`\copy %s from stdin csv header;`, table), (*config.DatabaseURL).String())
+
+		stdout, err := exportCmd.StdoutPipe()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		importCmd.Stdin = stdout
+
+		err = exportCmd.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = importCmd.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = importCmd.Wait()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (b *Backfill) run(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = b.Dir
+	cmd.Stdout = os.Stdout
+	cmd.Start()
+	err := cmd.Wait()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// out, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	log.Println(string(out))
+	// 	log.Fatalf("cmd.Run() failed with %s\n", err)
+	// }
 }
