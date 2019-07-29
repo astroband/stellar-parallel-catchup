@@ -37,10 +37,19 @@ var (
 			OverrideDefaultFromEnvar("MAX_LEDGER").
 			Int()
 
+	// ChunkSize Chunk size to download ledgers
 	ChunkSize = kingpin.
 			Flag("chunk-size", "Chunk size").
 			Default("1000").
 			OverrideDefaultFromEnvar("CHUNK_SIZE").
+			Short('s').
+			Int()
+
+	// Concurrency Parallel streams
+	Concurrency = kingpin.
+			Flag("concurrency", "Concurrency").
+			Default("5").
+			OverrideDefaultFromEnvar("CONCURRENCY").
 			Short('c').
 			Int()
 )

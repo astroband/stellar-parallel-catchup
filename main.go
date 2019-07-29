@@ -1,15 +1,20 @@
 package main
 
 import (
-	"fmt"
-
+	"github.com/astroband/stellar-parallel-catchup/config"
 	"github.com/astroband/stellar-parallel-catchup/db"
+	"github.com/gammazero/workerpool"
 )
+
+var pool = workerpool.New(*config.Concurrency)
 
 func main() {
 	gaps := db.GetGaps()
 
-	for _, gap := range gaps {
-		fmt.Println(gap)
+	for index, gap := range gaps {
+
+		// fmt.Println(index, gap.Chunks, gap.Tail)
 	}
+
+	pool.StopWait()
 }

@@ -21,8 +21,26 @@ const maxQuery = `SELECT MAX(ledgerseq) FROM ledgerheaders`
 
 // Gap Represents gap in database
 type Gap struct {
-	Start int
-	End   int
+	Start  int
+	End    int
+	Size   int
+	Chunks int
+	Tail   int
+}
+
+// NewGap Initializes new Gap
+func NewGap(start int, finish int) Gap {
+	size := finish - start
+	chunks := size / *config.ChunkSize
+	tail := size % *config.ChunkSize
+
+	return Gap{
+		start,
+		finish,
+		size,
+		chunks,
+		tail,
+	}
 }
 
 // GetGaps Returns gaps in current Stellar database
@@ -30,7 +48,7 @@ func GetGaps() (r []Gap) {
 	// Empty head
 	min := queryValue(minQuery)
 	if min != *config.MinLedger {
-		r = append(r, Gap{*config.MinLedger, min})
+		r = append(r, NewGap(*config.MinLedger, min))
 	}
 
 	// Gaps
@@ -48,13 +66,13 @@ func GetGaps() (r []Gap) {
 			log.Fatal(err)
 		}
 
-		r = append(r, Gap{start, finish})
+		r = append(r, NewGap(start, finish))
 	}
 
 	// Tail
 	max := queryValue(maxQuery)
 	if max != *config.MaxLedger {
-		r = append(r, Gap{max, *config.MaxLedger})
+		r = append(r, NewGap(max, *config.MaxLedger))
 	}
 
 	return r
