@@ -32,7 +32,7 @@ type Backfill struct {
 
 // New Backfill Constructor
 func New(start int, count int) *Backfill {
-	ledger := start + count
+	ledger := start + count - 1
 	dir := path.Join(*config.WorkDir, fmt.Sprintf("%s-%s", strconv.Itoa(ledger), strconv.Itoa(count)))
 	dbFile := path.Join(dir, dbName)
 
@@ -41,12 +41,14 @@ func New(start int, count int) *Backfill {
 
 // Do Backfill payload
 func (b *Backfill) Do() {
-	log.Println("Catching up", b.catchupString())
+	log.Println("stellar-core catchup", b.catchupString())
 
 	conf := b.prepare()
 
 	b.run("stellar-core", "--conf", conf, "new-db")
 	b.run("stellar-core", "--conf", conf, "catchup", b.catchupString())
+
+	log.Println("sqlite export / psql -c", b.catchupString())
 	b.truncDatabase()
 	b.infill()
 
@@ -102,7 +104,7 @@ func (b *Backfill) truncDatabase() {
 
 	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq=1")
 	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq > ?", b.Ledger)
-	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq < ?", b.Ledger-b.Count+1)
+	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq < ?", b.Start)
 
 	// db.Exec("DROP TABLE IF EXISTS accountdata")
 	// db.Exec("DROP TABLE IF EXISTS accounts")
@@ -121,6 +123,8 @@ func (b *Backfill) infill() {
 	for _, table := range tables {
 		exportCmd := exec.Command("sqlite3", "-header", "-csv", b.DbFile, fmt.Sprintf("select * from %s", table))
 		importCmd := exec.Command("psql", "-c", fmt.Sprintf(`\copy %s from stdin csv header;`, table), (*config.DatabaseURL).String())
+		importCmd.Stdout = os.Stdout
+		importCmd.Stderr = os.Stdout
 
 		stdout, err := exportCmd.StdoutPipe()
 		if err != nil {
@@ -149,15 +153,14 @@ func (b *Backfill) infill() {
 func (b *Backfill) run(name string, args ...string) {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = b.Dir
-	cmd.Stdout = os.Stdout
-	cmd.Start()
-	err := cmd.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// out, err := cmd.CombinedOutput()
+	// cmd.Start()
+	// err := cmd.Wait()
 	// if err != nil {
-	// 	log.Println(string(out))
-	// 	log.Fatalf("cmd.Run() failed with %s\n", err)
+	// 	log.Fatal(err)
 	// }
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Println(string(out))
+		log.Fatalf("cmd.Run() failed with %s\n", err)
+	}
 }

@@ -18,8 +18,7 @@ const gapsQuery = `
 	WHERE ledgerseq + 1 <> next_nr
 `
 
-const minQuery = `SELECT MIN(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1`
-const maxQuery = `SELECT MAX(ledgerseq) FROM ledgerheaders WHERE ledgerseq <= $1`
+const minMaxQuery = `SELECT MIN(ledgerseq), MAX(ledgerseq) FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2`
 
 // Gap Represents gap in database
 type Gap struct {
@@ -32,7 +31,7 @@ type Gap struct {
 
 // NewGap Initializes new Gap
 func NewGap(start int, finish int) Gap {
-	size := finish - start
+	size := finish + 1 - start
 	chunks := size / *config.ChunkSize
 	tail := size % *config.ChunkSize
 
@@ -65,43 +64,34 @@ func GetGaps() (r []Gap) {
 		r = append(r, NewGap(start, finish))
 	}
 
-	min := queryValue(minQuery, *config.MinLedger)
-	max := queryValue(maxQuery, *config.MaxLedger)
+	min, max := queryMinMax()
 
-	if min == -1 && max == -1 {
+	if min == nil && max == nil {
 		r = append(r, NewGap(*config.MinLedger, *config.MaxLedger))
 	} else {
-		if min != -1 {
-			r = append(r, NewGap(*config.MinLedger, min))
+		if min != nil && *min != *config.MinLedger {
+			r = append(r, NewGap(*config.MinLedger, *min-1))
 		}
 
-		if max != -1 {
-			r = append(r, NewGap(max, *config.MinLedger))
+		if max != nil && *max != *config.MaxLedger {
+			r = append(r, NewGap(*max+1, *config.MaxLedger))
 		}
 	}
-
-	//return []Gap{NewGap(25069000, 25069442)}
-
-	//return []Gap{NewGap(2, 1000), NewGap(5000, 6000)}
 
 	return r
 }
 
-func queryValue(query string, param int) int {
-	var value *int
+func queryMinMax() (*int, *int) {
+	var min, max *int
 
-	err := config.DB.QueryRow(query, param).Scan(&value)
+	err := config.DB.QueryRow(minMaxQuery, *config.MinLedger, *config.MaxLedger).Scan(&min, &max)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return -1
+			return nil, nil
 		}
 
 		log.Fatal(err)
 	}
 
-	if value == nil {
-		return -1
-	}
-
-	return *value
+	return min, max
 }

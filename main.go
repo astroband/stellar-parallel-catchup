@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -22,8 +21,7 @@ func main() {
 		log.Println("Nothing to catch up!")
 		os.Exit(0)
 	}
-	fmt.Println(gaps)
-	os.Exit(-1)
+
 	for _, gap := range gaps {
 		submitChunks(gap)
 		submitTail(gap)
@@ -38,7 +36,6 @@ func submitChunks(gap db.Gap) {
 		count := *config.ChunkSize
 
 		backfill := backfill.New(start, count)
-
 		pool.Submit(func() { backfill.Do() })
 	}
 }
@@ -49,7 +46,6 @@ func submitTail(gap db.Gap) {
 		count := gap.Tail
 
 		backfill := backfill.New(start, count)
-
 		pool.Submit(func() { backfill.Do() })
 	}
 }
