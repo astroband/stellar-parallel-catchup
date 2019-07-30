@@ -23,7 +23,7 @@ func main() {
 	}
 
 	for _, gap := range gaps {
-		log.Println("Gap:", gap.Start, "->", gap.End, "=", gap.Size, ":", gap.Chunks, "chunks")
+		log.Println("Gap:", gap.Start, "->", gap.End, "=", gap.Size, ":", gap.Chunks+1, "chunks")
 	}
 
 	for _, gap := range gaps {
