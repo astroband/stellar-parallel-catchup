@@ -102,9 +102,11 @@ func (b *Backfill) truncDatabase() {
 
 	db.SetMaxOpenConns(1)
 
-	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq=1")
-	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq > ?", b.Ledger)
-	db.Exec("DELETE FROM ledgerheaders WHERE ledgerseq < ?", b.Start)
+	for _, table := range tables {
+		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq=1", table))
+		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq > ?", table), b.Ledger)
+		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq < ?", table), b.Start)
+	}
 
 	// db.Exec("DROP TABLE IF EXISTS accountdata")
 	// db.Exec("DROP TABLE IF EXISTS accounts")
@@ -126,14 +128,12 @@ func (b *Backfill) infill() {
 		importCmd.Stdout = os.Stdout
 		importCmd.Stderr = os.Stdout
 
-		stdout, err := exportCmd.StdoutPipe()
-		if err != nil {
-			log.Fatal(err)
-		}
+		//stdout, err := exportCmd.StdoutPipe()
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
 
-		importCmd.Stdin = stdout
-
-		err = exportCmd.Start()
+		err := exportCmd.Start()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -153,6 +153,7 @@ func (b *Backfill) infill() {
 func (b *Backfill) run(name string, args ...string) {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = b.Dir
+	// cmd.Stdout = os.Stdout
 	// cmd.Start()
 	// err := cmd.Wait()
 	// if err != nil {
