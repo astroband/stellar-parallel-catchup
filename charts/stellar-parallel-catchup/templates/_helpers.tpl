@@ -68,5 +68,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
   value: {{ .parallelism.concurrency | quote }}
 - name: WORK_DIR
   value: {{ .persistence.mountPath | quote }}
+- name: STELLAR_CONFIG_TEMPLATE
+  value: ./stellar-core.cfg
 {{- end }}
 {{- end }}

@@ -64,7 +64,7 @@ var (
 	StellarConfigTemplate = kingpin.
 				Flag("stellar-config-template", "stellar-core.cfg template file location").
 				Default("./templates/stellar-core.cfg").
-				OverrideDefaultFromEnvar("STELLAR_CORE_TEMPLATE").
+				OverrideDefaultFromEnvar("STELLAR_CONFIG_TEMPLATE").
 				String()
 )
 

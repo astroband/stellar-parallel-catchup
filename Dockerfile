@@ -20,6 +20,7 @@ ENV CONCURRENCY=3
 WORKDIR /root
 
 COPY --from=build /go/src/github.com/astroband/stellar-parallel-catchup/stellar-parallel-catchup .
+COPY --from=build /go/src/github.com/astroband/stellar-parallel-catchup/templates/stellar-core.cfg ./stellar-core.cfg
 RUN chmod +x ./stellar-parallel-catchup
 
 CMD ["/root/stellar-parallel-catchup"]
