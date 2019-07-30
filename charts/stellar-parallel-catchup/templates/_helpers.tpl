@@ -54,23 +54,19 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
       key: {{ required "key of database.fromSecret is required" .key | quote }}
 {{- else }}
 - name: DATABASE_URL
-  value: {{ .Values.database.url }}
+  value: {{ .Values.database.url | quote }}
 {{- end }}
 
 {{- with .Values }}
 - name: MIN_LEDGER
   value: {{ .ledger.min | quote }}
-
 - name: MAX_LEDGER
   value: {{ required ".ledger.max is required" .ledger.max | quote }}
-
 - name: CHUNK_SIZE
-  value: {{ .parallelism.chunk }}
-
+  value: {{ .parallelism.chunk | quote }}
 - name: CONCURRENCY
-  value: {{ .parallelism.concurrency }}
-
+  value: {{ .parallelism.concurrency | quote }}
 - name: WORK_DIR
-  value: {{ .persistence.mountPath }}
+  value: {{ .persistence.mountPath | quote }}
 {{- end }}
 {{- end }}
