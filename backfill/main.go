@@ -121,6 +121,7 @@ func (b *Backfill) truncDatabase() {
 	// db.Exec("DROP TABLE IF EXISTS trustlines")
 }
 
+// TODO: Replace with pg_loader || own bin util
 func (b *Backfill) infill() {
 	for _, table := range tables {
 		exportCmd := exec.Command("sqlite3", "-header", "-csv", b.DbFile, fmt.Sprintf("select * from %s", table))

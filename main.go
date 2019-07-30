@@ -23,6 +23,10 @@ func main() {
 	}
 
 	for _, gap := range gaps {
+		log.Println("Gap:", gap.Start, "->", gap.End, "=", gap.Size, ":", gap.Chunks, "chunks")
+	}
+
+	for _, gap := range gaps {
 		submitChunks(gap)
 		submitTail(gap)
 	}
