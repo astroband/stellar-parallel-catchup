@@ -5,7 +5,7 @@ workflows:
   deploy:
     jobs:
       - build:
-          context: astrologer
+          context: stellar-parallel-catchup
           filters:
             branches:
               only:

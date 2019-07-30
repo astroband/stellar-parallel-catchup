@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: astroband/stellar-parallel-catchup
+  tag: master-fc070296b6ac2c8b525af66b146b96c8f96bd30e
+  pullPolicy: IfNotPresent
+
+database:
+  url: postgres://localhost/stellar
+  #
+  # fromSecret:
+  #   name: stellar-parallel-catchup
+  #   key: database-url
+
+
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
