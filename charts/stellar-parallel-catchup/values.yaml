@@ -24,7 +24,7 @@ persistence:
   # existingClaim:
   accessMode: ReadWriteOnce
   size: 8Gi
-  subPath: "stellar-core-catchup"
+  subPath: "stellar-parallel-catchup"
   mountPath: "/data"
 
 resources:
