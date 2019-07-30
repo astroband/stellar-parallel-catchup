@@ -24,6 +24,18 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             {{- include "stellar-parallel-catchup.env" . | indent 12 }}
+          volumeMounts:
+            - name: cache
+              mountPath: {{ .Values.persistence.mountPath }}
+              subPath: {{ .Values.persistence.subPath }}
+      volumes:
+      - name: cache
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "stellar-parallel-catchup.fullname" .) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}            
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

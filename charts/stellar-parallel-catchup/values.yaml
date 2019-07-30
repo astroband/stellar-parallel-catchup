@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: astroband/stellar-parallel-catchup
-  tag: master-fc070296b6ac2c8b525af66b146b96c8f96bd30e
+  tag: master-009cdf42fdb0cef4070ac19fb34aefccbf46c3f2
   pullPolicy: IfNotPresent
 
 database:
@@ -12,7 +12,20 @@ database:
   #   name: stellar-parallel-catchup
   #   key: database-url
 
+ledger:
+  min: 1
+  # max: Must be set
 
+parallelism:
+  chunk: 1000
+  concurrency: 3
+
+persistence:
+  # existingClaim:
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  subPath: "stellar-core-catchup"
+  mountPath: "/data"
 
 resources:
   limits:
