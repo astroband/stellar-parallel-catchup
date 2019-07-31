@@ -70,7 +70,5 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
   value: {{ .persistence.mountPath | quote }}
 - name: STELLAR_CONFIG_TEMPLATE
   value: ./stellar-core.cfg
-- name: STELLAR_CORE
-  value: ./stellar-core
 {{- end }}
 {{- end }}
