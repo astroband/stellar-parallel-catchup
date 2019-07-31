@@ -28,7 +28,7 @@ ENV STELLAR_CORE=/root/stellar-core
 
 WORKDIR /root
 
-RUN apk add --no-cache libpq libstdc++ curl
+RUN apk add --no-cache libpq libstdc++ curl sqlite3
 
 COPY --from=stellar-core /usr/local/bin/stellar-core .
 COPY --from=build /go/src/github.com/astroband/stellar-parallel-catchup/stellar-parallel-catchup .
