@@ -66,6 +66,13 @@ var (
 				Default("./templates/stellar-core.cfg").
 				OverrideDefaultFromEnvar("STELLAR_CONFIG_TEMPLATE").
 				String()
+
+	// stellar-core binary location
+	StellarCore = kingpin.
+			Flag("stellar-core", "stellar-core location").
+			Default("/usr/local/bin/stellar-core").
+			OverrideDefaultFromEnvar("STELLAR_CORE").
+			String()
 )
 
 func init() {

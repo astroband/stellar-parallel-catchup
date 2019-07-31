@@ -45,8 +45,8 @@ func (b *Backfill) Do() {
 
 	conf := b.prepare()
 
-	b.run("stellar-core", "--conf", conf, "new-db")
-	b.run("stellar-core", "--conf", conf, "catchup", b.catchupString())
+	b.run(*config.StellarCore, "--conf", conf, "new-db")
+	b.run(*config.StellarCore, "--conf", conf, "catchup", b.catchupString())
 
 	log.Println("sqlite export / psql -c", b.catchupString())
 	b.truncDatabase()
