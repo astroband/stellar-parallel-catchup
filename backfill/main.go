@@ -126,15 +126,17 @@ func (b *Backfill) infill() {
 	for _, table := range tables {
 		exportCmd := exec.Command("sqlite3", "-header", "-csv", b.DbFile, fmt.Sprintf("select * from %s", table))
 		importCmd := exec.Command("psql", "-c", fmt.Sprintf(`\copy %s from stdin csv header;`, table), (*config.DatabaseURL).String())
-		importCmd.Stdout = os.Stdout
-		importCmd.Stderr = os.Stdout
+		// importCmd.Stdout = os.Stdout
+		// importCmd.Stderr = os.Stdout
 
-		//stdout, err := exportCmd.StdoutPipe()
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
+		stdout, err := exportCmd.StdoutPipe()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		err := exportCmd.Start()
+		importCmd.Stdin = stdout
+
+		err = exportCmd.Start()
 		if err != nil {
 			log.Fatal(err)
 		}
