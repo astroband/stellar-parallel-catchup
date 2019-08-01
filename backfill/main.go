@@ -9,6 +9,7 @@ import (
 	"path"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/astroband/stellar-parallel-catchup/config"
 	"github.com/astroband/stellar-parallel-catchup/db"
@@ -42,18 +43,21 @@ func New(start int, count int) *Backfill {
 
 // Do Backfill payload
 func (b *Backfill) Do() {
-	log.Println("stellar-core catchup", b.catchupString())
+	start := time.Now()
+
+	log.Printf("stellar-core catchup %s started...", b.catchupString())
 
 	conf := b.prepare()
 
 	b.run(*config.StellarCore, "--conf", conf, "new-db")
 	b.run(*config.StellarCore, "--conf", conf, "catchup", b.catchupString())
 
-	log.Println("sqlite export / psql -c", b.catchupString())
 	b.truncDatabase()
 	b.infill()
 
 	b.cleanup()
+
+	log.Printf("stellar-core catchup %s finished, took %s.", b.catchupString(), time.Since(start))
 }
 
 func (b *Backfill) createConfig() string {
