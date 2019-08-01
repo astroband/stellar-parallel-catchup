@@ -21,7 +21,7 @@ const (
 	dbName = "stellar.sqlite"
 )
 
-var tables = []string{"ledgerheaders", "txhistory", "txfeehistory", "upgradehistory", "scphistory"}
+var tables = []string{"txhistory", "txfeehistory", "upgradehistory", "scphistory", "ledgerheaders"}
 
 // Backfill Represents Backfill instance
 type Backfill struct {
