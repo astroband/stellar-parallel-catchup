@@ -26,7 +26,7 @@ var (
 	// MinLedger Starting ledger to catch up from
 	MinLedger = kingpin.
 			Flag("min-ledger", "Minimal ledger to start from").
-			Default("250690000").
+			Default("2").
 			OverrideDefaultFromEnvar("MIN_LEDGER").
 			Int()
 

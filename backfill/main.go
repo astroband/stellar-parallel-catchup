@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/astroband/stellar-parallel-catchup/config"
+	"github.com/astroband/stellar-parallel-catchup/db"
 
 	_ "github.com/mattn/go-sqlite3" // sqlite3 driver
 )
@@ -95,17 +96,18 @@ func (b *Backfill) cleanup() {
 }
 
 func (b *Backfill) truncDatabase() {
-	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?cache=shared", b.DbFile))
+	file, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?cache=shared", b.DbFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.SetMaxOpenConns(1)
+	file.SetMaxOpenConns(1)
 
 	for _, table := range tables {
-		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq=1", table))
-		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq > ?", table), b.Ledger)
-		db.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq < ?", table), b.Start)
+		file.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq=1", table))
+		file.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq > ?", table), b.Ledger)
+		file.Exec(fmt.Sprintf("DELETE FROM %s WHERE ledgerseq < ?", table), b.Start)
+		db.Cleanup(table, b.Start, b.Ledger)
 	}
 
 	// db.Exec("DROP TABLE IF EXISTS accountdata")

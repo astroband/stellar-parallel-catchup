@@ -2,9 +2,11 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/astroband/stellar-parallel-catchup/config"
+	"github.com/lib/pq"
 )
 
 const gapsQuery = `
@@ -19,6 +21,7 @@ const gapsQuery = `
 `
 
 const minMaxQuery = `SELECT MIN(ledgerseq), MAX(ledgerseq) FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2`
+const cleanupQuery = `DELETE FROM %s WHERE ledgerseq BETWEEN $1 AND $2`
 
 // Gap Represents gap in database
 type Gap struct {
@@ -79,6 +82,14 @@ func GetGaps() (r []Gap) {
 	}
 
 	return r
+}
+
+// Cleanup Removes part of history from core database before import
+func Cleanup(table string, min int, max int) {
+	_, err := config.DB.Exec(fmt.Sprintf(cleanupQuery, pq.QuoteIdentifier(table)), min, max)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func queryMinMax() (*int, *int) {
