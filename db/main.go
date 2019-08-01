@@ -20,6 +20,7 @@ const gapsQuery = `
 	WHERE ledgerseq + 1 <> next_nr
 `
 
+const maxLedgerQuery = `SELECT MAX(ledgerseq) FROM ledgerheaders`
 const minMaxQuery = `SELECT MIN(ledgerseq), MAX(ledgerseq) FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2`
 const cleanupQuery = `DELETE FROM %s WHERE ledgerseq BETWEEN $1 AND $2`
 
@@ -45,6 +46,18 @@ func NewGap(start int, finish int) Gap {
 		chunks,
 		tail,
 	}
+}
+
+// GetMaxLedger Returns absolute maximum ledger in database
+func GetMaxLedger() *int {
+	var value *int
+
+	err := config.DB.QueryRow(maxLedgerQuery).Scan(&value)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return value
 }
 
 // GetGaps Returns gaps in current Stellar database

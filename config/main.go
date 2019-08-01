@@ -33,7 +33,6 @@ var (
 	// MaxLedger Ledger to checkup to
 	MaxLedger = kingpin.
 			Flag("max-ledger", "Maximum ledger to finish on (is loaded from public Horizon by default)").
-			Default("25069442").
 			OverrideDefaultFromEnvar("MAX_LEDGER").
 			Int()
 
