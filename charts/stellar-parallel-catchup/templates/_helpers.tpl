@@ -60,8 +60,10 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- with .Values }}
 - name: MIN_LEDGER
   value: {{ .ledger.min | quote }}
+{{- if .ledger.max }}
 - name: MAX_LEDGER
-  value: {{ required ".ledger.max is required" .ledger.max | quote }}
+  value: {{ .ledger.max | quote }}
+{{- end }}
 - name: CHUNK_SIZE
   value: {{ .parallelism.chunk | quote }}
 - name: CONCURRENCY
