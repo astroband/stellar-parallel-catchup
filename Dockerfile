@@ -22,7 +22,6 @@ RUN GO111MODULE=on go build
 FROM alpine:latest
 
 ENV DATABASE_URL=postgres://localhost/core?sslmode=disable
-ENV MAX_LEDGER=99999999
 ENV CONCURRENCY=3
 ENV STELLAR_CORE=/root/stellar-core
 
