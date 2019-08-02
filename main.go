@@ -36,12 +36,12 @@ func setMaxLedger() {
 		log.Fatal("Can not catch up fresh database. Run stellar-core node and wait for initial catchup to finish!")
 	}
 
-	if *max < *config.MaxLedger {
-		log.Fatal("Can not catchup segment after the last ledger database has, set --maxLedger to any ledger less than the last")
-	}
-
 	if *config.MaxLedger == 0 {
 		*config.MaxLedger = *max
+	}
+
+	if *max < *config.MaxLedger {
+		log.Fatal("Can not catchup segment after the last ledger database has, set --maxLedger to any ledger less than the last")
 	}
 
 	if *config.MinLedger > *config.MaxLedger {
