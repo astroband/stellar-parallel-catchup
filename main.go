@@ -41,7 +41,7 @@ func setMaxLedger() {
 		*config.MaxLedger = *max
 	}
 
-	fmt.Println(*max, *config.MaxLedger)
+	fmt.Println(*max, *config.MinLedger, *config.MaxLedger)
 	if *max < *config.MaxLedger {
 		log.Fatal("Can not catchup segment after the last ledger database has, set --maxLedger to any ledger less than the last")
 	}
