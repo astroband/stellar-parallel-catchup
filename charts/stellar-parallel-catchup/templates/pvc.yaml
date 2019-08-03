@@ -2,7 +2,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ template "stellar-core.fullname" . }}
+  name: {{ template "stellar-parallel-catchup.fullname" . }}
   labels:
 {{ include "stellar-parallel-catchup.labels" . | indent 4 }}  
 {{- if .Values.persistence.annotations }}
