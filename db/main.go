@@ -86,7 +86,8 @@ func GetGaps() (r []Gap) {
 		r = append(r, NewGap(*config.MinLedger, *config.MaxLedger))
 	} else {
 		if min != nil && *min != *config.MinLedger {
-			r = append(r, NewGap(*config.MinLedger, *min-1))
+			head := []Gap{NewGap(*config.MinLedger, *min-1)}
+			r = append(head, r...)
 		}
 
 		if max != nil && *max != *config.MaxLedger {
