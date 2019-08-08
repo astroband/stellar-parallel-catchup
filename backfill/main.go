@@ -49,8 +49,8 @@ func (b *Backfill) Do() {
 
 	conf := b.prepare()
 
-	b.run(*config.StellarCore, "--conf", conf, "new-db")
-	b.run(*config.StellarCore, "--conf", conf, "catchup", b.catchupString())
+	b.run(true, *config.StellarCore, "--conf", conf, "new-db")
+	b.run(false, *config.StellarCore, "--conf", conf, "catchup", b.catchupString())
 
 	b.truncDatabase()
 	b.infill()
@@ -159,7 +159,7 @@ func (b *Backfill) infill() {
 	}
 }
 
-func (b *Backfill) run(name string, args ...string) {
+func (b *Backfill) run(fatal bool, name string, args ...string) {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = b.Dir
 	// cmd.Stdout = os.Stdout
@@ -171,6 +171,8 @@ func (b *Backfill) run(name string, args ...string) {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println(string(out))
-		log.Fatalf("cmd.Run() failed with %s\n", err)
+		if fatal {
+			log.Fatalf("cmd.Run() failed with %s\n", err)
+		}
 	}
 }
